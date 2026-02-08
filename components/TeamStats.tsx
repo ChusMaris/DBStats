@@ -23,7 +23,7 @@ const MiniDonut = ({ value }: { value: number }) => {
   const offset = circumference - (normalizedValue / 100) * circumference;
   
   let color = '#e5e7eb'; // gray-200 default for 0 or empty
-  if (value > 0 || (value === 0 && normalizedValue === 0)) { // Logic check: if 0% but attempted, it's red? Let's stick to standard thresholds
+  if (value > 0 || (value === 0 && normalizedValue === 0)) { 
      if (normalizedValue === 0) color = '#d1d5db'; // gray-300
      else if (normalizedValue < 50) color = '#ef4444'; // red-500
      else if (normalizedValue < 70) color = '#f59e0b'; // amber-500
@@ -109,14 +109,30 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
           );
           
           const t1Pct = t1I > 0 ? (t1A / t1I) * 100 : 0;
+          
+          // Determine winner from the perspective of the selected team
+          const myScore = isLocal ? (m.puntos_local ?? 0) : (m.puntos_visitante ?? 0);
+          const oppScore = isLocal ? (m.puntos_visitante ?? 0) : (m.puntos_local ?? 0);
+          const isWin = myScore > oppScore;
+          const isDraw = myScore === oppScore;
 
           return {
             ...m,
             isLocal,
-            opponent: isLocal ? (m.equipo_visitante?.nombre_especifico || 'Rival') : (m.equipo_local?.nombre_especifico || 'Rival'),
-            opponentLogo: isLocal ? m.equipo_visitante?.clubs?.logo_url : m.equipo_local?.clubs?.logo_url,
-            teamScore: isLocal ? (m.puntos_local ?? 0) : (m.puntos_visitante ?? 0),
-            oppScore: isLocal ? (m.puntos_visitante ?? 0) : (m.puntos_local ?? 0),
+            // Standardize Local vs Visitor data for display
+            local: {
+                name: m.equipo_local?.nombre_especifico || 'Local',
+                logo: m.equipo_local?.clubs?.logo_url,
+                score: m.puntos_local ?? 0,
+                isMyTeam: isLocal
+            },
+            visitor: {
+                name: m.equipo_visitante?.nombre_especifico || 'Visitante',
+                logo: m.equipo_visitante?.clubs?.logo_url,
+                score: m.puntos_visitante ?? 0,
+                isMyTeam: !isLocal
+            },
+            resultStatus: isWin ? 'W' : (isDraw ? 'D' : 'L'), // Win, Draw, Loss
             stats: { t1A, t1I, t1Pct, t2, t3, fouls }
           };
         });
@@ -232,27 +248,72 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
             {teamMatches.length === 0 && <p className="text-gray-500 col-span-full text-center py-10 italic text-lg">No hay registros de partidos.</p>}
             {teamMatches.map((match) => (
               <div key={match.id} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow bg-white flex flex-col">
-                <div className="bg-gray-50 p-4 border-b border-gray-100 flex justify-between items-center">
-                    <div className="flex flex-col items-center w-1/3 text-center">
-                        <span className="text-xs font-bold text-gray-400 uppercase mb-1">{match.isLocal ? 'Local' : 'Visitante'}</span>
-                        <span className={`text-3xl font-bold ${match.teamScore > match.oppScore ? 'text-fcbq-blue' : 'text-gray-600'}`}>{match.teamScore}</span>
+                {/* Cabecera del Partido */}
+                <div className="bg-slate-50/50 p-4 border-b border-gray-100">
+                    {/* Fila superior: Jornada y Fecha */}
+                    <div className="flex justify-between items-center mb-3">
+                         <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                            Jornada {match.jornada}
+                         </span>
+                         <span className="text-[10px] font-medium text-gray-400 uppercase">
+                            {match.fecha_hora ? new Date(match.fecha_hora).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Fecha pendiente'}
+                         </span>
                     </div>
-                    <div className="flex flex-col items-center w-1/3 text-gray-300">
-                        <span className="text-xs font-bold">VS</span>
-                        <div className="text-xs mt-1 text-center font-bold text-gray-400 leading-tight uppercase truncate w-full">{match.opponent}</div>
-                        <div className="text-[10px] text-gray-500 font-medium mt-1">
-                            {match.fecha_hora ? new Date(match.fecha_hora).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''}
+
+                    {/* Fila central: Equipos y Marcador (Local vs Visitante) */}
+                    <div className="flex items-center justify-between gap-2">
+                        {/* Equipo Local */}
+                        <div className={`flex flex-col items-center w-1/3 gap-2 ${match.local.isMyTeam ? 'opacity-100' : 'opacity-80 grayscale-[0.2]'}`}>
+                             <div className="w-12 h-12 md:w-14 md:h-14 p-1 bg-white rounded-full shadow-sm border border-slate-100 flex items-center justify-center">
+                                {match.local.logo ? (
+                                    <img src={match.local.logo} alt="Local" className="w-full h-full object-contain" />
+                                ) : (
+                                    <span className="text-xs font-bold text-gray-300">LOGO</span>
+                                )}
+                             </div>
+                             <span className={`text-[10px] text-center leading-tight line-clamp-2 h-7 flex items-center justify-center ${match.local.isMyTeam ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
+                                {match.local.name}
+                             </span>
+                        </div>
+
+                        {/* Marcador Central */}
+                        <div className="flex flex-col items-center w-1/3">
+                            <div className="flex items-center gap-1.5 md:gap-2 text-2xl md:text-3xl font-black text-slate-800 tracking-tighter">
+                                <span>{match.local.score}</span>
+                                <span className="text-slate-300 text-xl font-light">-</span>
+                                <span>{match.visitor.score}</span>
+                            </div>
+                            {/* Estado del Resultado (W/L) */}
+                            <span className={`mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                match.resultStatus === 'W' ? 'bg-green-50 text-green-600 border-green-100' : 
+                                match.resultStatus === 'L' ? 'bg-red-50 text-red-600 border-red-100' :
+                                'bg-gray-50 text-gray-500 border-gray-100'
+                            }`}>
+                                {match.resultStatus === 'W' ? 'VICTORIA' : (match.resultStatus === 'L' ? 'DERROTA' : 'EMPATE')}
+                            </span>
+                        </div>
+
+                        {/* Equipo Visitante */}
+                        <div className={`flex flex-col items-center w-1/3 gap-2 ${match.visitor.isMyTeam ? 'opacity-100' : 'opacity-80 grayscale-[0.2]'}`}>
+                             <div className="w-12 h-12 md:w-14 md:h-14 p-1 bg-white rounded-full shadow-sm border border-slate-100 flex items-center justify-center">
+                                {match.visitor.logo ? (
+                                    <img src={match.visitor.logo} alt="Visitante" className="w-full h-full object-contain" />
+                                ) : (
+                                    <span className="text-xs font-bold text-gray-300">LOGO</span>
+                                )}
+                             </div>
+                             <span className={`text-[10px] text-center leading-tight line-clamp-2 h-7 flex items-center justify-center ${match.visitor.isMyTeam ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
+                                {match.visitor.name}
+                             </span>
                         </div>
                     </div>
-                    <div className="flex flex-col items-center w-1/3 text-center">
-                        <span className="text-xs font-bold text-gray-400 uppercase mb-1">Rival</span>
-                        <span className={`text-3xl font-bold ${match.oppScore > match.teamScore ? 'text-fcbq-blue' : 'text-gray-600'}`}>{match.oppScore}</span>
-                    </div>
                 </div>
+
+                {/* Estadísticas Resumidas */}
                 <div className="p-4 grid grid-cols-2 gap-4 flex-1">
-                    <div className="flex flex-col items-center justify-center">
-                        <span className="text-xs text-gray-400 font-bold mb-1 uppercase">T. Libres</span>
-                        <div className="w-20 h-20 relative">
+                    <div className="flex flex-col items-center justify-center border-r border-slate-50 pr-2">
+                        <span className="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-wider">T. Libres</span>
+                        <div className="w-16 h-16 relative">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                                     <Pie 
@@ -261,28 +322,37 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
                                         cy="50%" 
                                         innerRadius="60%" 
                                         outerRadius="85%" 
-                                        cornerRadius={3}
-                                        paddingAngle={2}
+                                        cornerRadius={2}
+                                        paddingAngle={4}
                                         startAngle={90} 
                                         endAngle={-270} 
                                         dataKey="value" 
                                         stroke="none"
                                     >
                                         <Cell fill={getPieColor(match.stats.t1Pct)} />
-                                        <Cell fill="#f3f4f6" />
+                                        <Cell fill="#f1f5f9" />
                                     </Pie>
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <span className="text-xs font-bold text-gray-600">{Math.round(match.stats.t1Pct)}%</span>
+                                <span className="text-[10px] font-bold text-slate-600">{Math.round(match.stats.t1Pct)}%</span>
                             </div>
                         </div>
-                        <span className="text-xs text-gray-400 mt-1 font-mono font-bold">{match.stats.t1A}/{match.stats.t1I}</span>
+                        <span className="text-[10px] text-slate-400 mt-1 font-mono">{match.stats.t1A}/{match.stats.t1I}</span>
                     </div>
-                    <div className="flex flex-col justify-center gap-2 text-xs">
-                        <div className="flex justify-between border-b border-gray-50 pb-1"><span className="text-gray-400 uppercase">T2 Total</span><span className="font-bold text-gray-700">{match.stats.t2}</span></div>
-                        <div className="flex justify-between border-b border-gray-50 pb-1"><span className="text-gray-400 uppercase">T3 Total</span><span className="font-bold text-gray-700">{match.stats.t3}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-400 uppercase">Faltas</span><span className="font-bold text-red-500">{match.stats.fouls}</span></div>
+                    <div className="flex flex-col justify-center gap-2 text-xs pl-2">
+                        <div className="flex justify-between items-center border-b border-slate-50 pb-1.5">
+                            <span className="text-slate-400 uppercase text-[10px] font-bold">T2 Total</span>
+                            <span className="font-bold text-slate-700 bg-slate-50 px-1.5 rounded">{match.stats.t2}</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-slate-50 pb-1.5">
+                            <span className="text-slate-400 uppercase text-[10px] font-bold">T3 Total</span>
+                            <span className="font-bold text-slate-700 bg-slate-50 px-1.5 rounded">{match.stats.t3}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-0.5">
+                            <span className="text-slate-400 uppercase text-[10px] font-bold">Faltas</span>
+                            <span className="font-bold text-red-500 bg-red-50 px-1.5 rounded border border-red-100">{match.stats.fouls}</span>
+                        </div>
                     </div>
                 </div>
               </div>
