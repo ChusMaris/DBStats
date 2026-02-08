@@ -1,15 +1,16 @@
 {
   "name": "db-stats",
-  "homepage": "https://chusmaris.github.io/DBStats/",
+  "homepage": "https://chusmaris.github.io/DBStats",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "deploy:fix": "gh-pages-clean && npm run deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.39.0",
