@@ -123,17 +123,30 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, matchStats, matches, 
                <div className="flex flex-wrap gap-2 md:gap-3 text-blue-100 text-sm md:text-base mt-2">
                  <span className="bg-white/10 px-3 py-1 rounded">#{player.dorsal}</span>
                  <span className="bg-white/10 px-3 py-1 rounded">{player.partidosJugados} PJ</span>
-                 <span className="bg-white/10 px-3 py-1 rounded">{player.ppg.toFixed(1)} PPG</span>
                </div>
              </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition -mr-2 -mt-2"><X size={28} /></button>
         </div>
         <div className="p-4 md:p-6 space-y-6 md:space-y-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center"><p className="text-xs md:text-sm text-gray-500 uppercase font-bold">Puntos Totales</p><p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.totalPuntos}</p></div>
-                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center"><p className="text-xs md:text-sm text-gray-500 uppercase font-bold">Minutos / P</p><p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.mpg.toFixed(1)}</p></div>
-                <div className="bg-blue-50 p-3 rounded-lg flex flex-col items-center justify-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center">
+                    <p className="text-xs md:text-sm text-gray-500 uppercase font-bold">Puntos Totales</p>
+                    <p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.totalPuntos}</p>
+                </div>
+                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center">
+                    <p className="text-xs md:text-sm text-gray-500 uppercase font-bold">PPG</p>
+                    <p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.ppg.toFixed(1)}</p>
+                </div>
+                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center">
+                    <p className="text-xs md:text-sm text-gray-500 uppercase font-bold">Minutos / P</p>
+                    <p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.mpg.toFixed(1)}</p>
+                </div>
+                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center">
+                    <p className="text-xs md:text-sm text-gray-500 uppercase font-bold">Puntos / Min</p>
+                    <p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.ppm.toFixed(2)}</p>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg flex flex-col items-center justify-center col-span-2 sm:col-span-1 lg:col-span-1">
                     <p className="text-xs md:text-sm text-gray-500 uppercase font-bold mb-2">Tiros Libres %</p>
                     <div className="w-14 h-14 md:w-20 md:h-20 relative">
                         <ResponsiveContainer width="100%" height="100%">
@@ -162,7 +175,6 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, matchStats, matches, 
                     </div>
                     <span className="text-xs md:text-sm text-gray-500 font-medium mt-1">{player.totalTirosLibresAnotados}/{player.totalTirosLibresIntentados}</span>
                 </div>
-                <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center"><p className="text-xs md:text-sm text-gray-500 uppercase font-bold">Puntos / Min</p><p className="text-2xl md:text-3xl font-bold text-fcbq-blue">{player.ppm.toFixed(2)}</p></div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

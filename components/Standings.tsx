@@ -17,7 +17,7 @@ const Standings: React.FC<StandingsProps> = ({ equipos, partidos, esMini, onSele
       
       const map = new Map<number | string, TeamStanding>();
 
-      // Inicializar mapa de equipos de forma segura
+      // 1. Inicializar mapa de equipos
       equipos.forEach(eq => {
         if (eq && eq.id) {
           map.set(eq.id, {
@@ -35,7 +35,7 @@ const Standings: React.FC<StandingsProps> = ({ equipos, partidos, esMini, onSele
         }
       });
 
-      // Procesar partidos finalizados de forma segura
+      // 2. Procesar partidos finalizados para estadísticas generales
       partidos.forEach(p => {
         if (!p || p.puntos_local === null || p.puntos_visitante === null) return;
 
@@ -61,30 +61,76 @@ const Standings: React.FC<StandingsProps> = ({ equipos, partidos, esMini, onSele
             visit.puntos += 2;
             local.puntos += 1;
           } else {
+            // En caso de empate (poco común en basket pero posible en algunas actas)
             local.puntos += 1;
             visit.puntos += 1;
           }
         }
       });
 
-      const result = Array.from(map.values()).map(t => ({
+      const initialList = Array.from(map.values()).map(t => ({
         ...t,
         diff: t.pf - t.pc
       }));
 
-      // Ordenar por puntos, luego diferencia
-      result.sort((a, b) => {
+      // 3. Función de comparación compleja (Condicional por categoría)
+      const compareTeams = (a: TeamStanding, b: TeamStanding) => {
+        // Criterio 1: Puntos totales (Siempre primero)
         if (b.puntos !== a.puntos) return b.puntos - a.puntos;
+
+        // Criterio 2: Desempate si NO es mini (Mini-liga / Enfrentamientos directos)
+        if (!esMini) {
+            const tiedWithSamePoints = initialList.filter(t => t.puntos === a.puntos).map(t => t.equipoId);
+            
+            if (tiedWithSamePoints.length > 1) {
+                const getMiniStats = (targetId: number | string) => {
+                    let mPts = 0, mPf = 0, mPc = 0;
+                    partidos.forEach(p => {
+                        if (!p || p.puntos_local === null || p.puntos_visitante === null) return;
+                        
+                        const isLocalTied = tiedWithSamePoints.includes(p.equipo_local_id);
+                        const isVisitTied = tiedWithSamePoints.includes(p.equipo_visitante_id);
+                        
+                        if (isLocalTied && isVisitTied) {
+                            if (p.equipo_local_id === targetId) {
+                                mPf += p.puntos_local;
+                                mPc += p.puntos_visitante;
+                                if (p.puntos_local > p.puntos_visitante) mPts += 2;
+                                else if (p.puntos_local < p.puntos_visitante) mPts += 1;
+                                else mPts += 1;
+                            } else if (p.equipo_visitante_id === targetId) {
+                                mPf += p.puntos_visitante;
+                                mPc += p.puntos_local;
+                                if (p.puntos_visitante > p.puntos_local) mPts += 2;
+                                else if (p.puntos_visitante < p.puntos_local) mPts += 1;
+                                else mPts += 1;
+                            }
+                        }
+                    });
+                    return { pts: mPts, diff: mPf - mPc, pf: mPf };
+                };
+
+                const miniA = getMiniStats(a.equipoId);
+                const miniB = getMiniStats(b.equipoId);
+
+                if (miniB.pts !== miniA.pts) return miniB.pts - miniA.pts;
+                if (miniB.diff !== miniA.diff) return miniB.diff - miniA.diff;
+                if (miniB.pf !== miniA.pf) return miniB.pf - miniA.pf;
+            }
+        }
+
+        // Criterio Final (o para categorías mini): Diferencia general
         if (b.diff !== a.diff) return b.diff - a.diff;
         return b.pf - a.pf;
-      });
+      };
 
-      return result;
+      initialList.sort(compareTeams);
+      return initialList;
     } catch (e) {
       console.error("Error calculating standings", e);
       return [];
     }
-  }, [equipos, partidos]);
+  }, [equipos, partidos, esMini]);
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-md border border-gray-100">
