@@ -358,7 +358,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="bg-slate-900 text-slate-400 py-10 text-center text-base">
-        <p>&copy; {new Date().getFullYear()} Brafa Stats. Datos no oficiales para uso analítico.</p>
+        <p>&copy; {new Date().getFullYear()} Brafa Stats. Datos oficiales para uso analítico.</p>
       </footer>
     </div>
   );
