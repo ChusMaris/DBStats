@@ -226,7 +226,7 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, matchStats, matches, 
                         <span className="text-2xl font-bold text-fcbq-blue leading-none">{stat.puntos} <span className="text-sm text-gray-400 font-medium ml-0.5">pts</span></span>
                       </div>
                       <div className="h-px bg-gray-100 w-full mb-3"></div>
-                      <div className="flex justify-between items-center text-sm mb-2.5">
+                      <div className="flex justify-between items-center text-sm mb-3">
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-400">Minutos:</span>
                           <span className="font-bold text-gray-700">{mins > 0 ? mins.toFixed(0) + "'" : '-'}</span>
@@ -236,11 +236,21 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, matchStats, matches, 
                           <span className="font-bold text-gray-800">{stat.faltas_cometidas || 0}</span>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-400">Tiros (1/2/3):</span>
-                        <span className="font-bold text-gray-800 tracking-wide font-mono">
-                          {stat.t1_anotados}/{stat.t1_intentados} &middot; {stat.t2_anotados}/{stat.t2_intentados} &middot; {stat.t3_anotados}/{stat.t3_intentados}
-                        </span>
+                      
+                      {/* Seccion Tiros Rediseñada */}
+                      <div className="bg-slate-50 rounded-lg p-2 grid grid-cols-3 gap-2 text-center">
+                         <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">T1</span>
+                            <span className="font-bold text-slate-700">{stat.t1_anotados}/{stat.t1_intentados}</span>
+                         </div>
+                         <div className="flex flex-col border-l border-slate-200">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">T2</span>
+                            <span className="font-bold text-slate-700">{stat.t2_anotados}</span>
+                         </div>
+                         <div className="flex flex-col border-l border-slate-200">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">T3</span>
+                            <span className="font-bold text-slate-700">{stat.t3_anotados}</span>
+                         </div>
                       </div>
                     </div>
                   );
