@@ -172,7 +172,12 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
           const totalPts = pStats.reduce((sum, s) => sum + (s.puntos || 0), 0);
           const totalMins = pStats.reduce((sum, s) => sum + parseTiempoJugado(s.tiempo_jugado), 0);
           const mpg = gp > 0 ? totalMins / gp : 0;
-          const ppm = mpg > 0 ? totalPts / mpg : 0;
+          
+          // Calculo PPM basado en minutos totales teóricos del partido (48 mini, 40 resto)
+          const minutosPorPartido = esMini ? 48 : 40;
+          const minutosTotalesPosibles = gp * minutosPorPartido;
+          const ppm = minutosTotalesPosibles > 0 ? totalPts / minutosTotalesPosibles : 0;
+          
           const totalFouls = pStats.reduce((sum, s) => sum + (s.faltas_cometidas || 0) + (s.tecnicas || 0) + (s.antideportivas || 0), 0);
           const t1A = pStats.reduce((sum, s) => sum + (s.t1_anotados || 0), 0);
           const t1I = pStats.reduce((sum, s) => sum + (s.t1_intentados || 0), 0);
@@ -209,7 +214,7 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
     } catch (e) {
       return [];
     }
-  }, [plantilla, stats, sortConfig]);
+  }, [plantilla, stats, sortConfig, esMini]);
 
   const getStatColor = (val1: number, val2: number, invert: boolean = false) => {
     if (val1 === val2) return 'text-slate-600';
