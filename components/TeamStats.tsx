@@ -12,6 +12,8 @@ interface TeamStatsProps {
   esMini: boolean;
 }
 
+const SHOOTING_FOUL_IDS = ['160', '161', '162', '165', '166', '537', '540', '544', '549'];
+
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'Pendiente';
   try {
@@ -164,6 +166,8 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
       const processed = plantilla.map(p => {
           if (!p) return null;
           const pStats = (stats || []).filter(s => s && String(s.jugador_id) === String(p.jugador_id));
+          const pMovements = (movements || []).filter(m => m && String(m.jugador_id) === String(p.jugador_id));
+
           const playerData = Array.isArray(p.jugadores) ? p.jugadores[0] : p.jugadores;
           const nombre = playerData?.nombre_completo || 'Jugador';
           const fotoUrl = playerData?.foto_url;
@@ -173,12 +177,16 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
           const totalMins = pStats.reduce((sum, s) => sum + parseTiempoJugado(s.tiempo_jugado), 0);
           const mpg = gp > 0 ? totalMins / gp : 0;
           
-          // Calculo PPM basado en minutos totales teóricos del partido (48 mini, 40 resto)
+          // Calculo PPM
           const minutosPorPartido = esMini ? 48 : 40;
           const minutosTotalesPosibles = gp * minutosPorPartido;
           const ppm = minutosTotalesPosibles > 0 ? totalPts / minutosTotalesPosibles : 0;
           
           const totalFouls = pStats.reduce((sum, s) => sum + (s.faltas_cometidas || 0) + (s.tecnicas || 0) + (s.antideportivas || 0), 0);
+          
+          // Calculo Faltas de Tiro
+          const totalFaltasTiro = pMovements.filter(m => SHOOTING_FOUL_IDS.includes(String(m.tipo_movimiento))).length;
+
           const t1A = pStats.reduce((sum, s) => sum + (s.t1_anotados || 0), 0);
           const t1I = pStats.reduce((sum, s) => sum + (s.t1_intentados || 0), 0);
           const t2A = pStats.reduce((sum, s) => sum + (s.t2_anotados || 0), 0);
@@ -195,6 +203,7 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
               totalPuntos: totalPts,
               totalMinutos: totalMins,
               totalFaltas: totalFouls,
+              totalFaltasTiro: totalFaltasTiro,
               totalTirosLibresIntentados: t1I,
               totalTirosLibresAnotados: t1A,
               totalTiros2Intentados: t2I,
@@ -223,7 +232,7 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
     } catch (e) {
       return [];
     }
-  }, [plantilla, stats, sortConfig, esMini]);
+  }, [plantilla, stats, movements, sortConfig, esMini]);
 
   const getStatColor = (val1: number, val2: number, invert: boolean = false) => {
     if (val1 === val2) return 'text-slate-600';
@@ -373,6 +382,7 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
                             <TableHeader label="MPG" column="mpg" />
                             <TableHeader label="PPM" column="ppm" />
                             <TableHeader label="FPG" column="fpg" />
+                            <TableHeader label="F.Tiro" column="totalFaltasTiro" />
                             <TableHeader label="% T1" column="t1Pct" />
                         </tr>
                     </thead>
@@ -393,6 +403,7 @@ const TeamStats: React.FC<TeamStatsProps> = ({ equipoId, matches, plantilla, sta
                                 <td className="px-4 py-4 text-center text-gray-500">{player.mpg.toFixed(1)}</td>
                                 <td className="px-4 py-4 text-center text-gray-500">{player.ppm.toFixed(2)}</td>
                                 <td className="px-4 py-4 text-center text-gray-500">{player.fpg.toFixed(1)}</td>
+                                <td className="px-4 py-4 text-center text-gray-500 font-semibold">{player.totalFaltasTiro}</td>
                                 <td className="px-4 py-4 flex justify-center">
                                     <MiniDonut value={(player as any).t1Pct} />
                                 </td>

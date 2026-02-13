@@ -134,6 +134,7 @@ export interface PlayerAggregatedStats {
   totalPuntos: number;
   totalMinutos: number;
   totalFaltas: number;
+  totalFaltasTiro: number; // New field
   totalTirosLibresIntentados: number;
   totalTirosLibresAnotados: number;
   totalTiros2Intentados: number;

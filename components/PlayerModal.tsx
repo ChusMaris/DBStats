@@ -15,6 +15,8 @@ interface PlayerModalProps {
   onClose: () => void;
 }
 
+const SHOOTING_FOUL_IDS = ['160', '161', '162', '165', '166', '537', '540', '544', '549'];
+
 const getPctColor = (pct: number) => {
   if (pct < 40) return '#ef4444'; // Rojo
   if (pct < 65) return '#f59e0b'; // Naranja/Ámbar
@@ -128,6 +130,10 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, equipoId, matchStats,
             ? match?.equipo_visitante?.nombre_especifico || 'Rival' 
             : match?.equipo_local?.nombre_especifico || 'Rival';
 
+        // Calcular Faltas de Tiro para este partido
+        const matchMovements = movements.filter(m => String(m.partido_id) === String(stat.partido_id) && String(m.jugador_id) === String(player.jugadorId));
+        const faltasTiro = matchMovements.filter(m => SHOOTING_FOUL_IDS.includes(String(m.tipo_movimiento))).length;
+
         return {
           jornadaNum: jornada,
           name: match ? `J${jornada}` : 'ND',
@@ -136,6 +142,7 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, equipoId, matchStats,
           tl_att: stat.t1_intentados || 0,
           rival: rival,
           fecha: formatDate(match?.fecha_hora),
+          faltasTiro: faltasTiro,
           tlPct: (stat.t1_intentados || 0) > 0 ? (stat.t1_anotados! / stat.t1_intentados!) * 100 : 0,
           originalStat: stat
         };
@@ -144,7 +151,7 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, equipoId, matchStats,
       console.error("Error generating chart data", e);
       return [];
     }
-  }, [matchStats, matches, equipoId]);
+  }, [matchStats, matches, equipoId, movements, player.jugadorId]);
 
   const tlTotalPct = player.totalTirosLibresIntentados > 0 
     ? (player.totalTirosLibresAnotados / player.totalTirosLibresIntentados) * 100 
@@ -188,8 +195,8 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, equipoId, matchStats,
                     <p className="text-2xl md:text-3xl font-black text-fcbq-blue">{player.mpg.toFixed(1)}</p>
                 </div>
                 <div className="bg-blue-50 p-4 md:p-5 rounded-lg text-center flex flex-col justify-center border border-blue-100">
-                    <p className="text-[10px] md:text-xs text-blue-400 uppercase font-black tracking-widest mb-1">PPM</p>
-                    <p className="text-2xl md:text-3xl font-black text-fcbq-blue">{player.ppm.toFixed(2)}</p>
+                    <p className="text-[10px] md:text-xs text-blue-400 uppercase font-black tracking-widest mb-1">Faltas (De Tiro)</p>
+                    <p className="text-2xl md:text-3xl font-black text-fcbq-blue">{player.totalFaltas} <span className="text-sm md:text-base text-blue-400">({player.totalFaltasTiro})</span></p>
                 </div>
                 <div className="bg-blue-50 p-3 rounded-lg flex flex-col items-center justify-center col-span-2 sm:col-span-1 lg:col-span-1 border border-blue-100">
                     <p className="text-[10px] md:text-xs text-blue-400 uppercase font-black tracking-widest mb-2">Tiros Libres %</p>
@@ -272,7 +279,12 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, equipoId, matchStats,
                         </div>
                         <div className="flex flex-col text-right">
                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Faltas</span>
-                           <span className="text-xs font-black text-slate-700">{stat.faltas_cometidas || 0}</span>
+                           <span className="text-xs font-black text-slate-700">
+                             {stat.faltas_cometidas || 0}
+                             {data.faltasTiro > 0 && (
+                                <span className="text-xs text-rose-500 ml-1">({data.faltasTiro} t.)</span>
+                             )}
+                           </span>
                         </div>
                       </div>
 
