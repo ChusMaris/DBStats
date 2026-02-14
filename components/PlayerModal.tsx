@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { PlayerAggregatedStats, EstadisticaJugadorPartido, PartidoMovimiento } from '../types';
 import { X, Activity, Calendar, Users, TrendingUp } from 'lucide-react';
@@ -160,24 +161,42 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ player, equipoId, matchStats,
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24 md:pt-32 bg-black/60 backdrop-blur-sm transition-all">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] md:max-h-[80vh] overflow-y-auto flex flex-col animate-fade-in relative">
-        <div className="bg-fcbq-blue text-white p-6 flex justify-between items-start sticky top-0 z-10 shadow-md">
-          <div className="flex items-center gap-4">
-             <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-2 border-white shrink-0">
-                <img 
-                    src={player.fotoUrl || "https://image.singular.live/fit-in/450x450/filters:format(webp)/0d62960e1109063fb6b062e758907fb1/images/41uEQx58oj4zwPoOkM6uEO_w585h427.png"} 
-                    alt={player.nombre} 
-                    className="w-full h-full object-cover" 
-                />
-             </div>
-             <div>
-               <h2 className="text-2xl md:text-3xl font-bold leading-tight uppercase tracking-tight">{player.nombre}</h2>
-               <div className="flex flex-wrap gap-2 md:gap-3 text-blue-100 text-sm md:text-base mt-2">
-                 <span className="bg-white/10 px-3 py-1 rounded font-bold">#{player.dorsal}</span>
-                 <span className="bg-white/10 px-3 py-1 rounded font-medium">{player.partidosJugados} PARTIDOS</span>
-               </div>
-             </div>
+        
+        {/* NEW HEADER DESIGN */}
+        <div className="bg-fcbq-blue text-white p-6 relative overflow-hidden sticky top-0 z-10 shadow-md min-h-[140px] flex items-center">
+          
+          {/* Watermark Number - Positioned on the right side with smaller Hash */}
+          <div className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 flex items-center select-none pointer-events-none z-0 tracking-tighter opacity-10">
+              <span className="text-[6rem] md:text-[8rem] font-black text-white leading-none mr-1 md:mr-2">#</span>
+              <span className="text-[10rem] md:text-[12rem] font-black text-white leading-none">{player.dorsal}</span>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition -mr-2 -mt-2"><X size={28} /></button>
+
+          <div className="relative z-10 w-full pr-12"> {/* pr-12 creates space for the close button */}
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-4 border-white/30 shrink-0 shadow-lg">
+                    <img 
+                        src={player.fotoUrl || "https://image.singular.live/fit-in/450x450/filters:format(webp)/0d62960e1109063fb6b062e758907fb1/images/41uEQx58oj4zwPoOkM6uEO_w585h427.png"} 
+                        alt={player.nombre} 
+                        className="w-full h-full object-cover" 
+                    />
+                </div>
+                <div className="flex flex-col justify-center">
+                  <h2 className="text-2xl md:text-4xl font-black leading-none uppercase tracking-tight drop-shadow-sm line-clamp-2">{player.nombre}</h2>
+                  <div className="flex flex-wrap gap-2 md:gap-3 text-blue-100 text-sm md:text-base mt-2 font-bold">
+                    {/* Small # badge removed to avoid duplication */}
+                    <span className="bg-blue-900/40 px-3 py-1 rounded backdrop-blur-sm border border-white/10">{player.partidosJugados} PARTIDOS</span>
+                  </div>
+                </div>
+              </div>
+          </div>
+          
+          {/* Absolute Close Button */}
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 p-2 bg-black/10 hover:bg-white/20 rounded-full transition text-white/90 hover:text-white z-20 backdrop-blur-sm"
+          >
+            <X size={24} />
+          </button>
         </div>
         
         <div className="p-4 md:p-6 space-y-6 md:space-y-8">

@@ -49,6 +49,22 @@ export interface Partido {
   jornada?: number;
   equipos_local?: Equipo;     // Virtual join for easier access
   equipos_visitante?: Equipo; // Virtual join for easier access
+  equipo_local?: Equipo;      // Aliased join used in dataService
+  equipo_visitante?: Equipo;  // Aliased join used in dataService
+  es_calendario?: boolean;    // Flag to indicate source
+}
+
+export interface CalendarioItem {
+  id: number | string;
+  competicion_id: number | string;
+  jornada: number;
+  equipo_local_id: number | string;
+  equipo_visitante_id: number | string;
+  fecha_hora: string;
+  created_at?: string;
+  // Joins
+  equipo_local?: Equipo;
+  equipo_visitante?: Equipo;
 }
 
 export interface Jugador {
@@ -125,6 +141,25 @@ export interface TeamStanding {
   puntos: number; // Classification points
 }
 
+export interface CareerStats {
+  gamesPlayed: number;
+  ppg: number;
+  totalPoints: number;
+  avgT3Made: number; // Volume of 3 pointers made per game
+  t1Pct: number;
+  bestScoringGame: number;
+  totalMinutes: number; // Added: Total historical minutes
+  mpg: number; // Added: Historical Minutes Per Game
+}
+
+// NEW: Stats from other competitions in the same season (for linked players)
+export interface ParallelStats {
+    gamesPlayed: number;
+    ppg: number;
+    competitionNames: string[]; // e.g., ["Junior A", "Copa"]
+    isPrimaryContext: boolean; // True if they play MORE games elsewhere than here
+}
+
 export interface PlayerAggregatedStats {
   jugadorId: number | string;
   nombre: string;
@@ -134,7 +169,7 @@ export interface PlayerAggregatedStats {
   totalPuntos: number;
   totalMinutos: number;
   totalFaltas: number;
-  totalFaltasTiro: number; // New field
+  totalFaltasTiro: number;
   totalTirosLibresIntentados: number;
   totalTirosLibresAnotados: number;
   totalTiros2Intentados: number;
@@ -146,4 +181,40 @@ export interface PlayerAggregatedStats {
   mpg: number;
   fpg: number;
   ppm: number;
+  // Analysis
+  t1Pct?: number; // Only Free Throws have percentage
+  // Removed t3Pct, tsPct, eFgPct as requested (no attempt data for T2/T3)
+  last3PPG?: number; // Recent form (PPG of last N games played)
+  lastGamesPlayed?: number; // How many games are included in the last3PPG calc (1, 2, or 3)
+  pointsShare?: number; // % of team points
+  
+  // NEW: Historical Data
+  careerStats?: CareerStats;
+  // NEW: Parallel Season Data (Other Categories)
+  parallelStats?: ParallelStats;
+}
+
+// Scouting Report Types
+export interface ScoutingReport {
+  teamStats: {
+    ppg: number; // Puntos por partido
+    papg: number; // Puntos recibidos por partido (Points Against)
+    t3PerGame: number; // Triples anotados por partido
+    ftPct: number; // % Tiros Libres equipo
+    last5Form: string[]; // ['W', 'L', 'W'...]
+  };
+  keyPlayers: {
+    topScorer: PlayerAggregatedStats | null;
+    topShooter: PlayerAggregatedStats | null; // Mejor triplista (Volumen)
+    topRebounder: PlayerAggregatedStats | null; // (Si tuviéramos rebotes fiables)
+    foulMagnet: PlayerAggregatedStats | null; // Recibe muchas faltas
+    badFreeThrowShooter: PlayerAggregatedStats | null; // < 50% FT
+  };
+  rosterStats: PlayerAggregatedStats[]; // Lista completa para análisis manual
+  insights: string[]; // Frases generadas automáticamente
+  matchAnalysis?: {
+    prediction: string;
+    keyMatchup: string;
+    tempoAnalysis: string;
+  };
 }
